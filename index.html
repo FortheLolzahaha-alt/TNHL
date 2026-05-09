@@ -18,6 +18,7 @@
     --gold: #8a6a1a; --gold-light: #f5f0e0;
     --blue: #1a4a7a; --blue-light: #e8f0f8;
     --purple: #4a1a7a; --purple-light: #f0e8f8;
+    --owner: #7a3a00; --owner-light: #fff3e0;
     --shadow: 0 1px 3px rgba(26,24,20,0.08), 0 4px 16px rgba(26,24,20,0.04);
     --radius: 4px; --radius-lg: 8px;
   }
@@ -32,7 +33,10 @@
   .user-chip:hover { border-color: #6a6860; }
   .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: white; }
   .user-avatar.employee { background: var(--purple); }
-  .role-badge { font-size: 10px; padding: 1px 6px; border-radius: 2px; background: var(--purple); color: white; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; }
+  .user-avatar.owner { background: var(--owner); }
+  .role-badge { font-size: 10px; padding: 1px 6px; border-radius: 2px; color: white; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; }
+  .role-badge.employee { background: var(--purple); }
+  .role-badge.owner { background: var(--owner); }
   .sync-status { font-size: 12px; color: #9a9690; display: flex; align-items: center; gap: 6px; }
   .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf80; }
   .sync-dot.syncing { background: #f0a830; animation: pulse 1s infinite; }
@@ -53,10 +57,12 @@
   .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400; margin-bottom: 0.25rem; }
   .page-subtitle { font-size: 13px; color: var(--ink-soft); margin-bottom: 2rem; }
 
-  .tabs { display: flex; border-bottom: 1.5px solid var(--rule-strong); margin-bottom: 2rem; }
+  .tabs { display: flex; border-bottom: 1.5px solid var(--rule-strong); margin-bottom: 2rem; flex-wrap: wrap; }
   .tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--ink-soft); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: color 0.2s, border-color 0.2s; }
   .tab:hover { color: var(--ink); }
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab.owner-tab { color: var(--owner); }
+  .tab.owner-tab.active { border-bottom-color: var(--owner); }
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
@@ -82,6 +88,8 @@
   .btn:hover { background: var(--paper-warm); border-color: var(--ink-faint); }
   .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
   .btn-primary:hover { background: #9e4d2e; border-color: #9e4d2e; }
+  .btn-owner { background: var(--owner); color: white; border-color: var(--owner); }
+  .btn-owner:hover { background: #5a2a00; border-color: #5a2a00; }
   .btn-edit { color: var(--blue); border-color: #c0cfe0; }
   .btn-edit:hover { background: var(--blue-light); }
   .btn-danger { color: var(--red); border-color: #e0c0c0; }
@@ -90,6 +98,7 @@
 
   .form-panel { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); transition: border-color 0.2s; }
   .form-panel.editing { border-color: var(--accent); }
+  .form-panel.owner-panel { border-color: #d4a070; background: var(--owner-light); }
   .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
   .form-group { display: flex; flex-direction: column; gap: 4px; }
   .form-label { font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-soft); }
@@ -98,6 +107,7 @@
   .edit-indicator { font-size: 12px; color: var(--accent); font-weight: 500; }
 
   .readonly-notice { display: flex; align-items: center; gap: 10px; background: var(--gold-light); border: 1px solid #d4c070; border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--gold); }
+  .owner-notice { display: flex; align-items: center; gap: 10px; background: var(--owner-light); border: 1px solid #d4a070; border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--owner); }
 
   .table-wrapper { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
   table { width: 100%; border-collapse: collapse; }
@@ -119,6 +129,8 @@
   .badge-pending  { background: var(--gold-light);  color: var(--gold); }
   .badge-overdue  { background: var(--red-light);   color: var(--red); }
   .badge-purchase { background: var(--gold-light);  color: var(--gold); }
+  .badge-employee { background: var(--purple-light); color: var(--purple); }
+  .badge-owner    { background: var(--owner-light);  color: var(--owner); }
 
   .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--ink-soft); }
   .pagination-controls { display: flex; gap: 4px; }
@@ -137,9 +149,25 @@
   .upload-zone small { font-size: 11px; color: var(--ink-faint); }
   .divider { height: 1px; background: var(--rule); margin: 1.5rem 0; }
 
+  /* Modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(26,24,20,0.55); z-index: 600; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .modal-box { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 2rem; width: 100%; max-width: 380px; box-shadow: var(--shadow); }
+  .modal-title { font-family: 'Playfair Display', serif; font-size: 19px; margin-bottom: 1rem; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 1rem; }
+
   #toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: var(--paper); padding: 12px 20px; border-radius: var(--radius-lg); font-size: 13px; z-index: 999; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; max-width: 300px; }
   #toast.show { opacity: 1; transform: translateY(0); }
-  .actions-cell { display: flex; gap: 4px; }
+  .actions-cell { display: flex; gap: 4px; flex-wrap: wrap; }
+
+  /* Employee management card */
+  .employee-card { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 1rem 1.25rem; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; box-shadow: var(--shadow); flex-wrap: wrap; gap: 8px; }
+  .employee-card-info { display: flex; align-items: center; gap: 12px; }
+  .employee-card-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; color: white; }
+  .employee-card-avatar.is-owner { background: var(--owner); }
+  .employee-card-avatar.is-employee { background: var(--purple); }
+  .employee-card-name { font-weight: 500; font-size: 14px; }
+  .employee-card-meta { font-size: 11px; color: var(--ink-faint); }
+  .employee-card-actions { display: flex; gap: 6px; }
 
   @media (max-width: 700px) {
     .container { padding: 1rem; }
@@ -182,10 +210,56 @@
   </div>
 </div>
 
+<!-- PASSWORD CHANGE MODAL -->
+<div id="changePwModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Change Password</div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">Current Password</label>
+      <input class="form-input" id="pwCurrent" type="password" placeholder="••••" />
+    </div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">New Password</label>
+      <input class="form-input" id="pwNew" type="password" placeholder="Min 4 characters" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm New Password</label>
+      <input class="form-input" id="pwConfirm" type="password" placeholder="Repeat new password" />
+    </div>
+    <div id="pwError" style="font-size:12px;color:var(--red);min-height:16px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="submitChangePassword()">Save Password</button>
+      <button class="btn" onclick="closeModal('changePwModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- OWNER: RESET EMPLOYEE PASSWORD MODAL -->
+<div id="ownerResetPwModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <div class="modal-title">Reset Password</div>
+    <div style="font-size:13px;color:var(--ink-soft);margin-bottom:14px;">Resetting password for: <strong id="resetTargetName"></strong></div>
+    <div class="form-group" style="margin-bottom:10px">
+      <label class="form-label">New Password</label>
+      <input class="form-input" id="ownerPwNew" type="password" placeholder="Min 4 characters" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Confirm Password</label>
+      <input class="form-input" id="ownerPwConfirm" type="password" placeholder="Repeat" />
+    </div>
+    <div id="ownerPwError" style="font-size:12px;color:var(--red);min-height:16px;margin-top:6px;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-owner" onclick="submitOwnerResetPassword()">Reset Password</button>
+      <button class="btn" onclick="closeModal('ownerResetPwModal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- HEADER -->
 <header>
   <div class="logo">Theos<span>.</span></div>
   <div class="header-right">
+    <button class="btn btn-sm" style="border-color:#3a3830;color:#9a9690;background:transparent;font-size:11px;" onclick="openModal('changePwModal')">🔑 Change PW</button>
     <div class="sync-status">
       <div class="sync-dot" id="syncDot"></div>
       <span id="syncLabel">Synced</span>
@@ -203,16 +277,16 @@
 <div class="container" id="appContent" style="display:none">
   <div class="page-title" id="pageTitle">Welcome</div>
 
-  <div class="tabs">
+  <div class="tabs" id="mainTabs">
     <button class="tab active" onclick="switchTab('debts',this)">Debts</button>
     <button class="tab" onclick="switchTab('purchases',this)">Purchases</button>
     <button class="tab" onclick="switchTab('stocks',this)">Stocks</button>
+    <button class="tab owner-tab" id="teamTab" onclick="switchTab('team',this)" style="display:none">👥 Team</button>
   </div>
 
   <!-- DEBTS TAB -->
   <div class="tab-content active" id="tab-debts">
 
-    <!-- Add/Edit form — employees only -->
     <div id="debtFormPanel" class="form-panel" style="display:none">
       <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:1rem;">
         <div class="section-title" id="debtFormTitle">Add Debt</div>
@@ -235,9 +309,9 @@
       </div>
     </div>
 
-    <!-- Read-only notice — non-employees -->
+    <!-- View-only notice for regular non-employee viewers (shouldn't happen now, kept as fallback) -->
     <div id="debtReadonlyNotice" class="readonly-notice" style="display:none">
-      🔒 <span><strong>View only.</strong> Only employees can add, edit, or remove debt entries. Contact your manager if changes are needed.</span>
+      🔒 <span><strong>View only.</strong> Only employees can add, edit, or remove debt entries.</span>
     </div>
 
     <div class="toolbar">
@@ -256,7 +330,7 @@
           <th id="th-debts-amount" onclick="sortTable('debts','amount')" class="th-sort">Amount</th>
           <th id="th-debts-due" onclick="sortTable('debts','due')" class="th-sort">Due Date</th>
           <th>Status</th>
-          <th style="width:160px"></th>
+          <th style="width:180px"></th>
         </tr></thead>
         <tbody id="debtTable"></tbody>
       </table>
@@ -348,21 +422,38 @@
       <div class="pagination" id="stockPagination"></div>
     </div>
   </div>
+
+  <!-- TEAM TAB (Owner only) -->
+  <div class="tab-content" id="tab-team">
+    <div class="owner-notice">
+      👑 <span><strong>Owner Panel.</strong> You can view, reset passwords for, or remove employees. Owners cannot be deleted.</span>
+    </div>
+    <div class="form-panel owner-panel" style="margin-bottom:1.5rem;">
+      <div style="padding-bottom:10px;border-bottom:1px solid #d4a070;margin-bottom:1rem;"><div class="section-title">Team Members</div></div>
+      <div id="teamList"><div class="empty-state"><p>Loading team…</p></div></div>
+    </div>
+  </div>
+
 </div>
 
 <div id="toast"></div>
 
 <script>
+// ── Constants ─────────────────────────────────────────────
 const MASTER_KEY   = '$2a$10$G.1W0x7xyaZhYjwhKH56aONOfPQgRcYW9HznKhzb27cV75pTnzvSO';
 const BASE_URL     = 'https://api.jsonbin.io/v3/b';
 const REGISTRY_BIN = '69ff7b3badc21f119a780218';
 const PAGE_SIZE    = 25;
 const SECRET_KEY   = 'Tuna111';
+// Owners: these usernames are always owners regardless of when they registered
+const OWNER_USERNAMES = ['has', 'nuk', 'glitch'];
 
 let currentUser   = null;
+let currentUserKey = null; // the hash key used in registry
 let state         = { debts: [], purchases: [], stocks: [] };
 let saveTimer     = null;
 let editingDebtId = null;
+let ownerResetTarget = null; // { userKey, username }
 let sortState = {
   debts:     { col: 'createdAt', dir: 'desc' },
   purchases: { col: 'date',      dir: 'desc' },
@@ -370,6 +461,7 @@ let sortState = {
 };
 let pages = { debts: 1, purchases: 1, stocks: 1 };
 
+// ── Utilities ─────────────────────────────────────────────
 function simpleHash(str) {
   let h = 0;
   for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
@@ -380,6 +472,10 @@ function uid()   { return Date.now().toString(36) + Math.random().toString(36).s
 function today() { return new Date().toISOString().split('T')[0]; }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function isEmployee() { return !!(currentUser && currentUser.isEmployee); }
+function isOwner()    { return !!(currentUser && currentUser.isOwner); }
+
+function openModal(id)  { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
 // ── Login UI ──────────────────────────────────────────────
 let loginMode = 'signin';
@@ -414,24 +510,35 @@ async function handleLogin() {
     const reg     = await fetchRegistry();
     const userKey = simpleHash(username + pin);
     const users   = reg.users || {};
+    const ownerFlag = OWNER_USERNAMES.includes(username);
 
     if (loginMode === 'create') {
       if (Object.values(users).find(u => u.username === username))
         throw new Error('Username already taken. Try signing in instead.');
       const newBin = await createUserBin(username);
-      users[userKey] = { username, binId: newBin, isEmployee: true };
+      users[userKey] = { username, binId: newBin, isEmployee: true, isOwner: ownerFlag };
       await saveRegistry({ users });
-      currentUser = { username, binId: newBin, isEmployee: true };
+      currentUser = { username, binId: newBin, isEmployee: true, isOwner: ownerFlag };
+      currentUserKey = userKey;
     } else {
       const found = users[userKey];
       if (!found) throw new Error('Username or PIN not found. Check your details or create an account.');
-      currentUser = { username: found.username, binId: found.binId, isEmployee: !!found.isEmployee };
+      // Upgrade existing owner accounts automatically
+      const resolvedOwner = ownerFlag || !!found.isOwner;
+      currentUser = { username: found.username, binId: found.binId, isEmployee: !!found.isEmployee || resolvedOwner, isOwner: resolvedOwner };
+      currentUserKey = userKey;
+      // patch registry if owner flag changed
+      if (resolvedOwner && !found.isOwner) {
+        users[userKey].isOwner = true;
+        await saveRegistry({ users });
+      }
     }
 
     await loadData();
     showApp();
     localStorage.setItem('ledger_session', JSON.stringify({
-      userKey, username: currentUser.username, binId: currentUser.binId, isEmployee: currentUser.isEmployee
+      userKey, username: currentUser.username, binId: currentUser.binId,
+      isEmployee: currentUser.isEmployee, isOwner: currentUser.isOwner
     }));
   } catch(e) {
     errEl.textContent = e.message || 'Something went wrong. Please try again.';
@@ -464,31 +571,52 @@ async function createUserBin(username) {
   return (await r.json()).metadata.id;
 }
 
-// ── App ───────────────────────────────────────────────────
+// ── App UI ────────────────────────────────────────────────
 function showApp() {
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('appContent').style.display  = 'block';
   document.getElementById('userLabel').textContent     = currentUser.username;
   const av = document.getElementById('userAvatar');
   av.textContent = currentUser.username[0].toUpperCase();
-  av.className   = 'user-avatar' + (isEmployee() ? ' employee' : '');
-  document.getElementById('pageTitle').textContent = 'Welcome ' + currentUser.username;
-  document.getElementById('roleBadge').style.display = isEmployee() ? 'inline-block' : 'none';
-  // Debt UI gating
-  document.getElementById('debtFormPanel').style.display      = isEmployee() ? 'block' : 'none';
-  document.getElementById('debtReadonlyNotice').style.display = isEmployee() ? 'none'  : 'flex';
-  document.getElementById('debtClearBtn').style.display       = isEmployee() ? 'inline-flex' : 'none';
+
+  const rb = document.getElementById('roleBadge');
+  if (isOwner()) {
+    av.className = 'user-avatar owner';
+    rb.textContent = 'Owner';
+    rb.className = 'role-badge owner';
+    rb.style.display = 'inline-block';
+  } else if (isEmployee()) {
+    av.className = 'user-avatar employee';
+    rb.textContent = 'Employee';
+    rb.className = 'role-badge employee';
+    rb.style.display = 'inline-block';
+  } else {
+    av.className = 'user-avatar';
+    rb.style.display = 'none';
+  }
+
+  document.getElementById('pageTitle').textContent = 'Welcome, ' + currentUser.username;
+
+  // All employees (including owners) can see debts add form and clear button
+  // Non-employees get readonly notice
+  const canEdit = isEmployee() || isOwner();
+  document.getElementById('debtFormPanel').style.display      = canEdit ? 'block' : 'none';
+  document.getElementById('debtReadonlyNotice').style.display = canEdit ? 'none'  : 'flex';
+  document.getElementById('debtClearBtn').style.display       = canEdit ? 'inline-flex' : 'none';
+
+  // Owner tab
+  document.getElementById('teamTab').style.display = isOwner() ? 'inline-block' : 'none';
 }
 
 function signOut() {
   if (!confirm('Sign out?')) return;
   localStorage.removeItem('ledger_session');
-  currentUser = null;
+  currentUser = null; currentUserKey = null;
   state = { debts: [], purchases: [], stocks: [] };
   document.getElementById('loginScreen').style.display = 'flex';
   document.getElementById('appContent').style.display  = 'none';
-  document.getElementById('loginUser').value      = '';
-  document.getElementById('loginPin').value       = '';
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPin').value  = '';
   document.getElementById('loginAccessKey').value = '';
   setLoginMode('signin');
 }
@@ -497,7 +625,8 @@ function signOut() {
   try {
     const s = JSON.parse(localStorage.getItem('ledger_session') || 'null');
     if (s && s.binId) {
-      currentUser = { username: s.username, binId: s.binId, isEmployee: !!s.isEmployee };
+      currentUser    = { username: s.username, binId: s.binId, isEmployee: !!s.isEmployee, isOwner: !!s.isOwner };
+      currentUserKey = s.userKey;
       loadData().then(showApp);
     }
   } catch(e) {}
@@ -605,7 +734,7 @@ function renderDebts() {
   const {items,total,totalPages,page}=paginate(filtered,pages.debts);
   pages.debts=page;
   const tbody=document.getElementById('debtTable');
-  const emp=isEmployee();
+  const canEdit = isEmployee() || isOwner();
   if (!total) {
     tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">No debts found<p>Add your first entry above</p></div></td></tr>';
     document.getElementById('debtPagination').innerHTML='';
@@ -618,7 +747,7 @@ function renderDebts() {
       <td class="td-amount negative">${fmt(d.amount)}</td>
       <td>${d.due||'—'}</td>
       <td><span class="badge badge-${d.status}">${d.status}</span></td>
-      <td>${emp?`<div class="actions-cell">
+      <td>${canEdit?`<div class="actions-cell">
         <button class="btn btn-sm btn-edit" onclick="startEditDebt('${d.id}')">✎ Edit</button>
         <button class="btn btn-sm" onclick="toggleDebtPaid('${d.id}')" title="Toggle paid">✓</button>
         <button class="btn btn-sm btn-danger" onclick="removeDebt('${d.id}')">✕</button>
@@ -676,23 +805,6 @@ function renderStocks() {
   renderPagBar('stockPagination','stocks',total,totalPages,page);
 }
 
-function renderSummary() {
-  const td=state.debts.filter(d=>d.status!=='paid').reduce((s,d)=>s+parseFloat(d.amount||0),0);
-  const tp=state.purchases.reduce((s,p)=>s+parseFloat(p.amount||0),0);
-  const ts=state.stocks.reduce((s,st)=>s+(st.shares*st.currentPrice),0);
-  const net=ts-td-tp;
-  document.getElementById('totalDebt').textContent    =fmt(td);
-  document.getElementById('debtCount').textContent    =state.debts.length+' entr'+(state.debts.length===1?'y':'ies');
-  document.getElementById('totalPurchases').textContent=fmt(tp);
-  document.getElementById('purchaseCount').textContent =state.purchases.length+' entr'+(state.purchases.length===1?'y':'ies');
-  document.getElementById('totalStocks').textContent  =fmt(ts);
-  document.getElementById('stockCount').textContent   =state.stocks.length+' holding'+(state.stocks.length===1?'':'s');
-  const el=document.getElementById('netBalance');
-  el.textContent=fmt(Math.abs(net));
-  el.className='stat-value '+(net>=0?'green':'red');
-  document.getElementById('netLabel').textContent=net>=0?'Surplus':'Deficit';
-}
-
 function sortTable(section,col) {
   const cur=sortState[section];
   if (cur.col===col) cur.dir=cur.dir==='asc'?'desc':'asc';
@@ -703,13 +815,142 @@ function sortTable(section,col) {
   else renderStocks();
 }
 
-// ── Debt CRUD (employee-gated) ────────────────────────────
-function guardEmployee() {
-  if (!isEmployee()) { toast('Only employees can modify debts.'); return false; }
+// ── Team Tab (Owner only) ─────────────────────────────────
+async function renderTeam() {
+  const el = document.getElementById('teamList');
+  el.innerHTML = '<div class="empty-state"><p>Loading team…</p></div>';
+  try {
+    const reg = await fetchRegistry();
+    const users = reg.users || {};
+    const entries = Object.entries(users);
+    if (!entries.length) {
+      el.innerHTML = '<div class="empty-state"><p>No users registered yet.</p></div>';
+      return;
+    }
+    el.innerHTML = entries.map(([key, u]) => {
+      const uIsOwner = OWNER_USERNAMES.includes(u.username) || !!u.isOwner;
+      const avatarClass = uIsOwner ? 'is-owner' : 'is-employee';
+      const badgeClass  = uIsOwner ? 'badge-owner' : 'badge-employee';
+      const badgeText   = uIsOwner ? 'Owner' : 'Employee';
+      const isSelf      = u.username === currentUser.username;
+      // Owners can't be deleted/reset by other owners (protect yourself too)
+      const canModify = !uIsOwner;
+      return `<div class="employee-card">
+        <div class="employee-card-info">
+          <div class="employee-card-avatar ${avatarClass}">${u.username[0].toUpperCase()}</div>
+          <div>
+            <div class="employee-card-name">${esc(u.username)} ${isSelf ? '<span style="font-size:11px;color:var(--ink-faint)">(you)</span>' : ''}</div>
+            <div class="employee-card-meta"><span class="badge ${badgeClass}">${badgeText}</span></div>
+          </div>
+        </div>
+        <div class="employee-card-actions">
+          ${canModify ? `
+            <button class="btn btn-sm btn-edit" onclick="ownerResetPassword('${esc(key)}','${esc(u.username)}')">🔑 Reset PW</button>
+            <button class="btn btn-sm btn-danger" onclick="ownerDeleteEmployee('${esc(key)}','${esc(u.username)}')">✕ Remove</button>
+          ` : `<span style="font-size:11px;color:var(--ink-faint)">Protected</span>`}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    el.innerHTML = '<div class="empty-state"><p>Could not load team data.</p></div>';
+  }
+}
+
+function ownerResetPassword(userKey, username) {
+  ownerResetTarget = { userKey, username };
+  document.getElementById('resetTargetName').textContent = username;
+  document.getElementById('ownerPwNew').value = '';
+  document.getElementById('ownerPwConfirm').value = '';
+  document.getElementById('ownerPwError').textContent = '';
+  openModal('ownerResetPwModal');
+}
+
+async function submitOwnerResetPassword() {
+  const newPw  = document.getElementById('ownerPwNew').value.trim();
+  const confirm = document.getElementById('ownerPwConfirm').value.trim();
+  const errEl  = document.getElementById('ownerPwError');
+  if (!newPw || newPw.length < 4) { errEl.textContent = 'Password must be at least 4 characters.'; return; }
+  if (newPw !== confirm)           { errEl.textContent = 'Passwords do not match.'; return; }
+  try {
+    const reg   = await fetchRegistry();
+    const users = reg.users || {};
+    const target = users[ownerResetTarget.userKey];
+    if (!target) throw new Error('User not found.');
+    // Remove old key, insert with new hash (username + newPassword)
+    const newKey = simpleHash(ownerResetTarget.username + newPw);
+    delete users[ownerResetTarget.userKey];
+    users[newKey] = { ...target };
+    await saveRegistry({ users });
+    closeModal('ownerResetPwModal');
+    toast(`Password reset for ${ownerResetTarget.username}.`);
+    await renderTeam();
+  } catch(e) {
+    document.getElementById('ownerPwError').textContent = e.message || 'Failed to reset password.';
+  }
+}
+
+async function ownerDeleteEmployee(userKey, username) {
+  if (!confirm(`Remove employee "${username}"? This cannot be undone.`)) return;
+  try {
+    const reg   = await fetchRegistry();
+    const users = reg.users || {};
+    delete users[userKey];
+    await saveRegistry({ users });
+    toast(`${username} has been removed.`);
+    await renderTeam();
+  } catch(e) {
+    toast('Could not remove employee.');
+  }
+}
+
+// ── Change Own Password ───────────────────────────────────
+async function submitChangePassword() {
+  const current = document.getElementById('pwCurrent').value.trim();
+  const newPw   = document.getElementById('pwNew').value.trim();
+  const confirm = document.getElementById('pwConfirm').value.trim();
+  const errEl   = document.getElementById('pwError');
+  errEl.textContent = '';
+
+  if (!current || current.length < 4) { errEl.textContent = 'Enter your current password.'; return; }
+  if (!newPw || newPw.length < 4)     { errEl.textContent = 'New password must be at least 4 characters.'; return; }
+  if (newPw !== confirm)               { errEl.textContent = 'New passwords do not match.'; return; }
+
+  // Verify current password
+  const expectedKey = simpleHash(currentUser.username + current);
+  if (expectedKey !== currentUserKey) { errEl.textContent = 'Current password is incorrect.'; return; }
+
+  try {
+    const reg   = await fetchRegistry();
+    const users = reg.users || {};
+    if (!users[currentUserKey]) throw new Error('Your account was not found in the registry.');
+    const userData = { ...users[currentUserKey] };
+    const newKey   = simpleHash(currentUser.username + newPw);
+    delete users[currentUserKey];
+    users[newKey] = userData;
+    await saveRegistry({ users });
+    // Update session
+    currentUserKey = newKey;
+    localStorage.setItem('ledger_session', JSON.stringify({
+      userKey: newKey, username: currentUser.username, binId: currentUser.binId,
+      isEmployee: currentUser.isEmployee, isOwner: currentUser.isOwner
+    }));
+    closeModal('changePwModal');
+    document.getElementById('pwCurrent').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+    toast('Password changed successfully!');
+  } catch(e) {
+    errEl.textContent = e.message || 'Failed to change password.';
+  }
+}
+
+// ── Debt CRUD ─────────────────────────────────────────────
+function guardCanEdit() {
+  if (!isEmployee() && !isOwner()) { toast('Only employees can modify debts.'); return false; }
   return true;
 }
 function submitDebt() {
-  if (!guardEmployee()) return;
+  if (!guardCanEdit()) return;
   const person=document.getElementById('debtPerson').value.trim();
   const desc  =document.getElementById('debtDesc').value.trim();
   const amount=parseFloat(document.getElementById('debtAmount').value);
@@ -727,7 +968,7 @@ function submitDebt() {
   render(); scheduleSave();
 }
 function startEditDebt(id) {
-  if (!guardEmployee()) return;
+  if (!guardCanEdit()) return;
   const d=state.debts.find(d=>d.id===id); if (!d) return;
   editingDebtId=id;
   document.getElementById('debtPerson').value=d.person;
@@ -758,19 +999,19 @@ function clearDebtForm() {
   document.getElementById('debtStatus').value='pending';
 }
 function removeDebt(id) {
-  if (!guardEmployee()) return;
+  if (!guardCanEdit()) return;
   if (editingDebtId===id) cancelDebtEdit();
   state.debts=state.debts.filter(d=>d.id!==id);
   render(); scheduleSave();
 }
 function toggleDebtPaid(id) {
-  if (!guardEmployee()) return;
+  if (!guardCanEdit()) return;
   const d=state.debts.find(d=>d.id===id);
   if (d) d.status=d.status==='paid'?'pending':'paid';
   render(); scheduleSave();
 }
 function clearDebts() {
-  if (!guardEmployee()) return;
+  if (!guardCanEdit()) return;
   if (!confirm('Clear all debts?')) return;
   state.debts=[]; cancelDebtEdit(); render(); scheduleSave();
 }
@@ -840,13 +1081,16 @@ dz.addEventListener('drop',e=>{
   else toast('Please drop a CSV file.');
 });
 
-function switchTab(name,btn) {
+// ── Tab switching ─────────────────────────────────────────
+function switchTab(name, btn) {
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-'+name).classList.add('active');
+  if (name === 'team') renderTeam();
 }
 
+// ── Toast ─────────────────────────────────────────────────
 let toastTimer;
 function toast(msg) {
   const el=document.getElementById('toast');
@@ -854,6 +1098,7 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
 }
 
+// ── Init ──────────────────────────────────────────────────
 document.getElementById('purchaseDate').value=today();
 document.getElementById('debtDue').value     =today();
 document.getElementById('stockDate').value   =today();
