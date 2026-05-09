@@ -201,31 +201,7 @@
 
 <!-- APP -->
 <div class="container" id="appContent" style="display:none">
-  <div class="page-title" id="pageTitle">Your Financial Ledger</div>
-  <div class="page-subtitle" id="pageSubtitle">Track debts, purchases, and your portfolio in one place</div>
-
-  <div class="summary-grid">
-    <div class="stat-card">
-      <div class="stat-label">Total Debt</div>
-      <div class="stat-value red" id="totalDebt">€0.00</div>
-      <div class="stat-sub" id="debtCount">0 entries</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Total Purchases</div>
-      <div class="stat-value gold" id="totalPurchases">€0.00</div>
-      <div class="stat-sub" id="purchaseCount">0 entries</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Portfolio Value</div>
-      <div class="stat-value green" id="totalStocks">€0.00</div>
-      <div class="stat-sub" id="stockCount">0 holdings</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">Net Balance</div>
-      <div class="stat-value" id="netBalance">€0.00</div>
-      <div class="stat-sub" id="netLabel">—</div>
-    </div>
-  </div>
+  <div class="page-title" id="pageTitle">Welcome</div>
 
   <div class="tabs">
     <button class="tab active" onclick="switchTab('debts',this)">Debts</button>
@@ -496,10 +472,7 @@ function showApp() {
   const av = document.getElementById('userAvatar');
   av.textContent = currentUser.username[0].toUpperCase();
   av.className   = 'user-avatar' + (isEmployee() ? ' employee' : '');
-  document.getElementById('pageTitle').textContent    = currentUser.username + "'s Ledger";
-  document.getElementById('pageSubtitle').textContent = isEmployee()
-    ? 'Employee view — you can manage debts, purchases, and your portfolio.'
-    : 'Viewer access — you can view debts and manage your own purchases and portfolio.';
+  document.getElementById('pageTitle').textContent = 'Welcome ' + currentUser.username;
   document.getElementById('roleBadge').style.display = isEmployee() ? 'inline-block' : 'none';
   // Debt UI gating
   document.getElementById('debtFormPanel').style.display      = isEmployee() ? 'block' : 'none';
@@ -565,7 +538,7 @@ async function saveData() {
 function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveData, 800); }
 
 // ── Render ────────────────────────────────────────────────
-function render() { renderDebts(); renderPurchases(); renderStocks(); renderSummary(); }
+function render() { renderDebts(); renderPurchases(); renderStocks(); }
 
 function getFiltered(section) {
   let items = [...state[section]];
