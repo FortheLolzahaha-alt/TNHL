@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ledger — Debt & Portfolio Tracker</title>
+<title>Theos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -155,7 +155,7 @@
 <!-- LOGIN -->
 <div id="loginScreen">
   <div class="login-box">
-    <div class="login-title">Ledger<span style="color:#d4956a">.</span></div>
+    <div class="login-title">Theos<span style="color:#d4956a">.</span></div>
     <div class="login-sub">Sign in or create your account</div>
     <div class="login-tabs">
       <button class="login-tab active" onclick="setLoginMode('signin')">Sign in</button>
@@ -184,7 +184,7 @@
 
 <!-- HEADER -->
 <header>
-  <div class="logo">Ledger<span>.</span></div>
+  <div class="logo">Theos<span>.</span></div>
   <div class="header-right">
     <div class="sync-status">
       <div class="sync-dot" id="syncDot"></div>
@@ -221,7 +221,7 @@
       <div class="form-grid">
         <div class="form-group"><label class="form-label">Person / Creditor</label><input class="form-input" id="debtPerson" placeholder="e.g. Bank, Friend's name" /></div>
         <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="debtDesc" placeholder="What is it for?" /></div>
-        <div class="form-group"><label class="form-label">Amount (€)</label><input class="form-input" id="debtAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Amount (₺)</label><input class="form-input" id="debtAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
         <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" id="debtDue" type="date" /></div>
         <div class="form-group"><label class="form-label">Status</label>
           <select class="form-select" id="debtStatus">
@@ -272,10 +272,10 @@
         <div class="form-group"><label class="form-label">Item / Service</label><input class="form-input" id="purchaseName" placeholder="What did you buy?" /></div>
         <div class="form-group"><label class="form-label">Category</label>
           <select class="form-select" id="purchaseCategory">
-            <option>Food &amp; Dining</option><option>Shopping</option><option>Transport</option><option>Housing</option><option>Health</option><option>Entertainment</option><option>Utilities</option><option>Other</option>
+            <option>Carpet</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Amount (€)</label><input class="form-input" id="purchaseAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Amount (₺)</label><input class="form-input" id="purchaseAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
         <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="purchaseDate" type="date" /></div>
         <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="purchaseNotes" placeholder="Optional" /></div>
       </div>
@@ -284,7 +284,7 @@
     <div class="toolbar">
       <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="purchaseSearch" placeholder="Search purchases…" oninput="pages.purchases=1;renderPurchases()" /></div>
       <select class="filter-select" id="purchaseCatFilter" onchange="pages.purchases=1;renderPurchases()">
-        <option value="">All categories</option><option>Food &amp; Dining</option><option>Shopping</option><option>Transport</option><option>Housing</option><option>Health</option><option>Entertainment</option><option>Utilities</option><option>Other</option>
+        <option value="">All categories</option><option>Carpet</option>
       </select>
       <button class="btn btn-sm btn-danger" onclick="clearPurchases()">Clear all</button>
     </div>
@@ -312,8 +312,8 @@
         <div class="form-group"><label class="form-label">Ticker</label><input class="form-input" id="stockTicker" placeholder="AAPL" style="text-transform:uppercase;" /></div>
         <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="stockName" placeholder="Full name" /></div>
         <div class="form-group"><label class="form-label">Shares</label><input class="form-input" id="stockShares" type="number" min="0" step="0.001" placeholder="0" /></div>
-        <div class="form-group"><label class="form-label">Avg. Buy Price (€)</label><input class="form-input" id="stockBuyPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
-        <div class="form-group"><label class="form-label">Current Price (€)</label><input class="form-input" id="stockCurrentPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Avg. Buy Price (₺)</label><input class="form-input" id="stockBuyPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Current Price (₺)</label><input class="form-input" id="stockCurrentPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
         <div class="form-group"><label class="form-label">Purchase Date</label><input class="form-input" id="stockDate" type="date" /></div>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
@@ -375,7 +375,7 @@ function simpleHash(str) {
   for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
   return Math.abs(h).toString(36);
 }
-function fmt(n)  { return '€' + parseFloat(n||0).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmt(n)  { return '₺' + parseFloat(n||0).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 function uid()   { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
 function today() { return new Date().toISOString().split('T')[0]; }
 function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
