@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ledger — Debt & Portfolio Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #1a1814; --ink-soft: #5a564f; --ink-faint: #9a968f;
+    --paper: #faf8f4; --paper-warm: #f3f0ea; --paper-card: #ffffff;
+    --rule: #e8e4dc; --rule-strong: #c8c4bc;
+    --accent: #b85c38; --accent-light: #f5ede8;
+    --green: #3a6b3a; --green-light: #e8f0e8;
+    --red: #8b2020; --red-light: #f5e8e8;
+    --gold: #8a6a1a; --gold-light: #f5f0e0;
+    --blue: #1a4a7a; --blue-light: #e8f0f8;
+    --purple: #4a1a7a; --purple-light: #f0e8f8;
+    --shadow: 0 1px 3px rgba(26,24,20,0.08), 0 4px 16px rgba(26,24,20,0.04);
+    --radius: 4px; --radius-lg: 8px;
+  }
+  *, body { font-family: 'DM Sans', sans-serif; }
+  body { background: var(--paper); color: var(--ink); min-height: 100vh; font-size: 14px; line-height: 1.6; }
+
+  header { background: var(--ink); color: var(--paper); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 60px; position: sticky; top: 0; z-index: 200; }
+  .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; letter-spacing: -0.3px; color: var(--paper); }
+  .logo span { color: #d4956a; }
+  .header-right { display: flex; align-items: center; gap: 16px; }
+  .user-chip { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9a9690; cursor: pointer; padding: 4px 10px; border: 1px solid #3a3830; border-radius: var(--radius); transition: border-color 0.15s; }
+  .user-chip:hover { border-color: #6a6860; }
+  .user-avatar { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; color: white; }
+  .user-avatar.employee { background: var(--purple); }
+  .role-badge { font-size: 10px; padding: 1px 6px; border-radius: 2px; background: var(--purple); color: white; font-weight: 500; letter-spacing: 0.4px; text-transform: uppercase; }
+  .sync-status { font-size: 12px; color: #9a9690; display: flex; align-items: center; gap: 6px; }
+  .sync-dot { width: 7px; height: 7px; border-radius: 50%; background: #4caf80; }
+  .sync-dot.syncing { background: #f0a830; animation: pulse 1s infinite; }
+  .sync-dot.error { background: #e05050; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  #loginScreen { position: fixed; inset: 0; background: var(--paper); z-index: 500; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+  .login-box { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 2.5rem; width: 100%; max-width: 420px; box-shadow: var(--shadow); }
+  .login-title { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 400; margin-bottom: 0.25rem; }
+  .login-sub { font-size: 12px; color: var(--ink-faint); margin-bottom: 2rem; }
+  .login-tabs { display: flex; border-bottom: 1px solid var(--rule); margin-bottom: 1.5rem; }
+  .login-tab { padding: 8px 16px; font-size: 13px; font-weight: 500; color: var(--ink-soft); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .login-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .login-form { display: flex; flex-direction: column; gap: 12px; }
+  .access-hint { background: var(--purple-light); border: 1px solid #c8b0e0; border-radius: var(--radius); padding: 9px 12px; font-size: 12px; color: var(--purple); margin-top: 2px; }
+
+  .container { max-width: 1280px; margin: 0 auto; padding: 2rem; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 400; margin-bottom: 0.25rem; }
+  .page-subtitle { font-size: 13px; color: var(--ink-soft); margin-bottom: 2rem; }
+
+  .tabs { display: flex; border-bottom: 1.5px solid var(--rule-strong); margin-bottom: 2rem; }
+  .tab { padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--ink-soft); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1.5px; transition: color 0.2s, border-color 0.2s; }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 2rem; }
+  .stat-card { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 1.25rem 1.25rem 1rem; box-shadow: var(--shadow); }
+  .stat-label { font-size: 11px; font-weight: 500; letter-spacing: 0.8px; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 8px; }
+  .stat-value { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 600; letter-spacing: -0.5px; line-height: 1; }
+  .stat-value.red { color: var(--red); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.gold { color: var(--gold); }
+  .stat-sub { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+  .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 180px; }
+  .search-input { width: 100%; padding: 7px 10px 7px 32px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--paper-card); color: var(--ink); font-size: 13px; }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+  .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--ink-faint); pointer-events: none; }
+  .filter-select { padding: 7px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--paper-card); color: var(--ink); font-size: 12px; }
+
+  .section-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 400; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius); border: 1px solid var(--rule-strong); background: var(--paper-card); color: var(--ink); font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .btn:hover { background: var(--paper-warm); border-color: var(--ink-faint); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { background: #9e4d2e; border-color: #9e4d2e; }
+  .btn-edit { color: var(--blue); border-color: #c0cfe0; }
+  .btn-edit:hover { background: var(--blue-light); }
+  .btn-danger { color: var(--red); border-color: #e0c0c0; }
+  .btn-danger:hover { background: var(--red-light); }
+  .btn-sm { padding: 4px 10px; font-size: 11px; }
+
+  .form-panel { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow); transition: border-color 0.2s; }
+  .form-panel.editing { border-color: var(--accent); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 11px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; color: var(--ink-soft); }
+  .form-input, .form-select { padding: 8px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--paper); color: var(--ink); font-size: 13px; transition: border-color 0.15s; width: 100%; }
+  .form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); background: var(--paper-card); }
+  .edit-indicator { font-size: 12px; color: var(--accent); font-weight: 500; }
+
+  .readonly-notice { display: flex; align-items: center; gap: 10px; background: var(--gold-light); border: 1px solid #d4c070; border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 1.5rem; font-size: 13px; color: var(--gold); }
+
+  .table-wrapper { background: var(--paper-card); border: 1px solid var(--rule); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--paper-warm); padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 500; letter-spacing: 0.6px; text-transform: uppercase; color: var(--ink-soft); border-bottom: 1px solid var(--rule); white-space: nowrap; cursor: pointer; user-select: none; }
+  th:hover { color: var(--ink); }
+  .th-sort::after { content: ' ↕'; opacity: 0.35; font-size: 10px; }
+  .th-asc::after  { content: ' ↑'; opacity: 1; color: var(--accent); font-size: 10px; }
+  .th-desc::after { content: ' ↓'; opacity: 1; color: var(--accent); font-size: 10px; }
+  td { padding: 11px 14px; font-size: 13px; border-bottom: 1px solid var(--rule); color: var(--ink); }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #faf9f7; }
+  tr.editing-row td { background: #fdf5f2; }
+  .td-amount { font-family: 'Playfair Display', serif; font-size: 14px; }
+  .td-amount.negative { color: var(--red); }
+  .td-amount.positive { color: var(--green); }
+
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 2px; font-size: 10px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+  .badge-paid     { background: var(--green-light); color: var(--green); }
+  .badge-pending  { background: var(--gold-light);  color: var(--gold); }
+  .badge-overdue  { background: var(--red-light);   color: var(--red); }
+  .badge-purchase { background: var(--gold-light);  color: var(--gold); }
+
+  .pagination { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--ink-soft); }
+  .pagination-controls { display: flex; gap: 4px; }
+  .page-btn { padding: 4px 10px; border: 1px solid var(--rule-strong); border-radius: var(--radius); background: var(--paper-card); color: var(--ink); font-size: 12px; cursor: pointer; }
+  .page-btn:hover  { background: var(--paper-warm); }
+  .page-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .page-btn:disabled { opacity: 0.4; cursor: default; }
+
+  .empty-state { text-align: center; padding: 3rem 2rem; color: var(--ink-faint); }
+  .empty-state p { font-size: 13px; margin-top: 8px; }
+
+  .upload-zone { border: 1.5px dashed var(--rule-strong); border-radius: var(--radius-lg); padding: 2rem; text-align: center; cursor: pointer; transition: all 0.2s; background: var(--paper-warm); }
+  .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-light); }
+  .upload-icon { font-size: 32px; margin-bottom: 8px; opacity: 0.4; }
+  .upload-zone p     { font-size: 13px; color: var(--ink-soft); }
+  .upload-zone small { font-size: 11px; color: var(--ink-faint); }
+  .divider { height: 1px; background: var(--rule); margin: 1.5rem 0; }
+
+  #toast { position: fixed; bottom: 24px; right: 24px; background: var(--ink); color: var(--paper); padding: 12px 20px; border-radius: var(--radius-lg); font-size: 13px; z-index: 999; opacity: 0; transform: translateY(8px); transition: all 0.25s; pointer-events: none; max-width: 300px; }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  .actions-cell { display: flex; gap: 4px; }
+
+  @media (max-width: 700px) {
+    .container { padding: 1rem; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    header { padding: 0 1rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .toolbar { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-title">Ledger<span style="color:#d4956a">.</span></div>
+    <div class="login-sub">Sign in or create your account</div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="setLoginMode('signin')">Sign in</button>
+      <button class="login-tab" onclick="setLoginMode('create')">Create account</button>
+    </div>
+    <div class="login-form">
+      <div class="form-group">
+        <label class="form-label">Username</label>
+        <input class="form-input" id="loginUser" placeholder="Your username" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">PIN (4–8 digits)</label>
+        <input class="form-input" id="loginPin" type="password" placeholder="••••" maxlength="8" inputmode="numeric" />
+      </div>
+      <div class="form-group" id="accessKeyGroup" style="display:none">
+        <label class="form-label">Access Key</label>
+        <input class="form-input" id="loginAccessKey" type="password" placeholder="Enter access key to register" />
+        <div class="access-hint">🔑 Ask your manager for the access key to create an account.</div>
+      </div>
+      <div id="loginError" style="font-size:12px;color:var(--red);min-height:16px;"></div>
+      <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()" style="width:100%;justify-content:center;padding:10px;">Sign in</button>
+      <div style="font-size:11px;color:var(--ink-faint);text-align:center;margin-top:4px;">Your data is private and tied to your username + PIN</div>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">Ledger<span>.</span></div>
+  <div class="header-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="syncDot"></div>
+      <span id="syncLabel">Synced</span>
+    </div>
+    <div class="user-chip" onclick="signOut()">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <span id="userLabel">—</span>
+      <span id="roleBadge" class="role-badge" style="display:none">Employee</span>
+      <span style="opacity:0.5;font-size:10px;">sign out</span>
+    </div>
+  </div>
+</header>
+
+<!-- APP -->
+<div class="container" id="appContent" style="display:none">
+  <div class="page-title" id="pageTitle">Your Financial Ledger</div>
+  <div class="page-subtitle" id="pageSubtitle">Track debts, purchases, and your portfolio in one place</div>
+
+  <div class="summary-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Debt</div>
+      <div class="stat-value red" id="totalDebt">€0.00</div>
+      <div class="stat-sub" id="debtCount">0 entries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Purchases</div>
+      <div class="stat-value gold" id="totalPurchases">€0.00</div>
+      <div class="stat-sub" id="purchaseCount">0 entries</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Portfolio Value</div>
+      <div class="stat-value green" id="totalStocks">€0.00</div>
+      <div class="stat-sub" id="stockCount">0 holdings</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Net Balance</div>
+      <div class="stat-value" id="netBalance">€0.00</div>
+      <div class="stat-sub" id="netLabel">—</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('debts',this)">Debts</button>
+    <button class="tab" onclick="switchTab('purchases',this)">Purchases</button>
+    <button class="tab" onclick="switchTab('stocks',this)">Stocks</button>
+  </div>
+
+  <!-- DEBTS TAB -->
+  <div class="tab-content active" id="tab-debts">
+
+    <!-- Add/Edit form — employees only -->
+    <div id="debtFormPanel" class="form-panel" style="display:none">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:1rem;">
+        <div class="section-title" id="debtFormTitle">Add Debt</div>
+        <span class="edit-indicator" id="debtEditIndicator" style="display:none">Editing entry</span>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Person / Creditor</label><input class="form-input" id="debtPerson" placeholder="e.g. Bank, Friend's name" /></div>
+        <div class="form-group"><label class="form-label">Description</label><input class="form-input" id="debtDesc" placeholder="What is it for?" /></div>
+        <div class="form-group"><label class="form-label">Amount (€)</label><input class="form-input" id="debtAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Due Date</label><input class="form-input" id="debtDue" type="date" /></div>
+        <div class="form-group"><label class="form-label">Status</label>
+          <select class="form-select" id="debtStatus">
+            <option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-primary" id="debtSubmitBtn" onclick="submitDebt()">+ Add Debt</button>
+        <button class="btn" id="debtCancelBtn" onclick="cancelDebtEdit()" style="display:none">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Read-only notice — non-employees -->
+    <div id="debtReadonlyNotice" class="readonly-notice" style="display:none">
+      🔒 <span><strong>View only.</strong> Only employees can add, edit, or remove debt entries. Contact your manager if changes are needed.</span>
+    </div>
+
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="debtSearch" placeholder="Search by person or description…" oninput="pages.debts=1;renderDebts()" /></div>
+      <select class="filter-select" id="debtStatusFilter" onchange="pages.debts=1;renderDebts()">
+        <option value="">All statuses</option><option value="pending">Pending</option><option value="paid">Paid</option><option value="overdue">Overdue</option>
+      </select>
+      <button class="btn btn-sm btn-danger" id="debtClearBtn" onclick="clearDebts()" style="display:none">Clear all</button>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th id="th-debts-person" onclick="sortTable('debts','person')" class="th-sort">Person</th>
+          <th>Description</th>
+          <th id="th-debts-amount" onclick="sortTable('debts','amount')" class="th-sort">Amount</th>
+          <th id="th-debts-due" onclick="sortTable('debts','due')" class="th-sort">Due Date</th>
+          <th>Status</th>
+          <th style="width:160px"></th>
+        </tr></thead>
+        <tbody id="debtTable"></tbody>
+      </table>
+      <div class="pagination" id="debtPagination"></div>
+    </div>
+  </div>
+
+  <!-- PURCHASES TAB -->
+  <div class="tab-content" id="tab-purchases">
+    <div class="form-panel">
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:1rem;"><div class="section-title">Log a Purchase</div></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Item / Service</label><input class="form-input" id="purchaseName" placeholder="What did you buy?" /></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="purchaseCategory">
+            <option>Food &amp; Dining</option><option>Shopping</option><option>Transport</option><option>Housing</option><option>Health</option><option>Entertainment</option><option>Utilities</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Amount (€)</label><input class="form-input" id="purchaseAmount" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Date</label><input class="form-input" id="purchaseDate" type="date" /></div>
+        <div class="form-group"><label class="form-label">Notes</label><input class="form-input" id="purchaseNotes" placeholder="Optional" /></div>
+      </div>
+      <button class="btn btn-primary" onclick="addPurchase()">+ Log Purchase</button>
+    </div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="purchaseSearch" placeholder="Search purchases…" oninput="pages.purchases=1;renderPurchases()" /></div>
+      <select class="filter-select" id="purchaseCatFilter" onchange="pages.purchases=1;renderPurchases()">
+        <option value="">All categories</option><option>Food &amp; Dining</option><option>Shopping</option><option>Transport</option><option>Housing</option><option>Health</option><option>Entertainment</option><option>Utilities</option><option>Other</option>
+      </select>
+      <button class="btn btn-sm btn-danger" onclick="clearPurchases()">Clear all</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th id="th-purchases-date" onclick="sortTable('purchases','date')" class="th-sort">Date</th>
+          <th id="th-purchases-name" onclick="sortTable('purchases','name')" class="th-sort">Item</th>
+          <th>Category</th>
+          <th id="th-purchases-amount" onclick="sortTable('purchases','amount')" class="th-sort">Amount</th>
+          <th>Notes</th>
+          <th style="width:60px"></th>
+        </tr></thead>
+        <tbody id="purchaseTable"></tbody>
+      </table>
+      <div class="pagination" id="purchasePagination"></div>
+    </div>
+  </div>
+
+  <!-- STOCKS TAB -->
+  <div class="tab-content" id="tab-stocks">
+    <div class="form-panel">
+      <div style="padding-bottom:10px;border-bottom:1px solid var(--rule);margin-bottom:1rem;"><div class="section-title">Add Holding</div></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Ticker</label><input class="form-input" id="stockTicker" placeholder="AAPL" style="text-transform:uppercase;" /></div>
+        <div class="form-group"><label class="form-label">Company Name</label><input class="form-input" id="stockName" placeholder="Full name" /></div>
+        <div class="form-group"><label class="form-label">Shares</label><input class="form-input" id="stockShares" type="number" min="0" step="0.001" placeholder="0" /></div>
+        <div class="form-group"><label class="form-label">Avg. Buy Price (€)</label><input class="form-input" id="stockBuyPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Current Price (€)</label><input class="form-input" id="stockCurrentPrice" type="number" min="0" step="0.01" placeholder="0.00" /></div>
+        <div class="form-group"><label class="form-label">Purchase Date</label><input class="form-input" id="stockDate" type="date" /></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="addStock()">+ Add Holding</button>
+        <span style="font-size:12px;color:var(--ink-faint);">or</span>
+        <label class="btn" style="cursor:pointer;">📄 Upload CSV<input type="file" id="csvUpload" accept=".csv" style="display:none" onchange="handleCsvUpload(event)" /></label>
+        <span style="font-size:11px;color:var(--ink-faint);">Ticker, Name, Shares, BuyPrice, CurrentPrice, Date</span>
+      </div>
+    </div>
+    <div class="upload-zone" id="dropZone" onclick="document.getElementById('csvUploadDrop').click()">
+      <div class="upload-icon">📊</div>
+      <p>Drag &amp; drop a CSV file here, or click to browse</p>
+      <small>Ticker, Company, Shares, Buy Price, Current Price, Date</small>
+      <input type="file" id="csvUploadDrop" accept=".csv" style="display:none" onchange="handleCsvUpload(event)" />
+    </div>
+    <div class="divider"></div>
+    <div class="toolbar">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input class="search-input" id="stockSearch" placeholder="Search by ticker or company…" oninput="pages.stocks=1;renderStocks()" /></div>
+      <button class="btn btn-sm btn-danger" onclick="clearStocks()">Clear all</button>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead><tr>
+          <th id="th-stocks-ticker" onclick="sortTable('stocks','ticker')" class="th-asc">Ticker</th>
+          <th>Company</th><th>Shares</th><th>Buy Price</th><th>Current</th>
+          <th id="th-stocks-value" onclick="sortTable('stocks','value')" class="th-sort">Value</th>
+          <th id="th-stocks-pl" onclick="sortTable('stocks','pl')" class="th-sort">P&amp;L</th>
+          <th style="width:60px"></th>
+        </tr></thead>
+        <tbody id="stockTable"></tbody>
+      </table>
+      <div class="pagination" id="stockPagination"></div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const MASTER_KEY   = '$2a$10$G.1W0x7xyaZhYjwhKH56aONOfPQgRcYW9HznKhzb27cV75pTnzvSO';
+const BASE_URL     = 'https://api.jsonbin.io/v3/b';
+const REGISTRY_BIN = '69ff7b3badc21f119a780218';
+const PAGE_SIZE    = 25;
+const SECRET_KEY   = 'Tuna111';
+
+let currentUser   = null;
+let state         = { debts: [], purchases: [], stocks: [] };
+let saveTimer     = null;
+let editingDebtId = null;
+let sortState = {
+  debts:     { col: 'createdAt', dir: 'desc' },
+  purchases: { col: 'date',      dir: 'desc' },
+  stocks:    { col: 'ticker',    dir: 'asc'  }
+};
+let pages = { debts: 1, purchases: 1, stocks: 1 };
+
+function simpleHash(str) {
+  let h = 0;
+  for (let i = 0; i < str.length; i++) h = (Math.imul(31, h) + str.charCodeAt(i)) | 0;
+  return Math.abs(h).toString(36);
+}
+function fmt(n)  { return '€' + parseFloat(n||0).toLocaleString('nl-NL', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function uid()   { return Date.now().toString(36) + Math.random().toString(36).slice(2); }
+function today() { return new Date().toISOString().split('T')[0]; }
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function isEmployee() { return !!(currentUser && currentUser.isEmployee); }
+
+// ── Login UI ──────────────────────────────────────────────
+let loginMode = 'signin';
+function setLoginMode(m) {
+  loginMode = m;
+  document.querySelectorAll('.login-tab').forEach((t,i) =>
+    t.classList.toggle('active', (i===0&&m==='signin')||(i===1&&m==='create')));
+  document.getElementById('loginBtn').textContent = m==='signin' ? 'Sign in' : 'Create account';
+  document.getElementById('loginError').textContent = '';
+  document.getElementById('accessKeyGroup').style.display = m==='create' ? 'flex' : 'none';
+  document.getElementById('accessKeyGroup').style.flexDirection = 'column';
+}
+
+async function handleLogin() {
+  const username  = document.getElementById('loginUser').value.trim().toLowerCase();
+  const pin       = document.getElementById('loginPin').value.trim();
+  const accessKey = document.getElementById('loginAccessKey').value.trim();
+  const errEl     = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  if (!username || username.length < 2) { errEl.textContent = 'Username must be at least 2 characters.'; return; }
+  if (!/^\d{4,8}$/.test(pin))           { errEl.textContent = 'PIN must be 4–8 digits.'; return; }
+
+  if (loginMode === 'create' && accessKey !== SECRET_KEY) {
+    errEl.textContent = 'Invalid access key. Contact your manager to get one.';
+    return;
+  }
+
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Working…'; btn.disabled = true;
+  try {
+    const reg     = await fetchRegistry();
+    const userKey = simpleHash(username + pin);
+    const users   = reg.users || {};
+
+    if (loginMode === 'create') {
+      if (Object.values(users).find(u => u.username === username))
+        throw new Error('Username already taken. Try signing in instead.');
+      const newBin = await createUserBin(username);
+      users[userKey] = { username, binId: newBin, isEmployee: true };
+      await saveRegistry({ users });
+      currentUser = { username, binId: newBin, isEmployee: true };
+    } else {
+      const found = users[userKey];
+      if (!found) throw new Error('Username or PIN not found. Check your details or create an account.');
+      currentUser = { username: found.username, binId: found.binId, isEmployee: !!found.isEmployee };
+    }
+
+    await loadData();
+    showApp();
+    localStorage.setItem('ledger_session', JSON.stringify({
+      userKey, username: currentUser.username, binId: currentUser.binId, isEmployee: currentUser.isEmployee
+    }));
+  } catch(e) {
+    errEl.textContent = e.message || 'Something went wrong. Please try again.';
+  }
+  btn.textContent = loginMode==='signin' ? 'Sign in' : 'Create account';
+  btn.disabled = false;
+}
+
+// ── API ───────────────────────────────────────────────────
+async function fetchRegistry() {
+  const r = await fetch(`${BASE_URL}/${REGISTRY_BIN}/latest`, { headers: { 'X-Master-Key': MASTER_KEY } });
+  if (!r.ok) throw new Error('Could not reach the server.');
+  return (await r.json()).record || {};
+}
+async function saveRegistry(data) {
+  const r = await fetch(`${BASE_URL}/${REGISTRY_BIN}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+    body: JSON.stringify(data)
+  });
+  if (!r.ok) throw new Error('Could not save user registry.');
+}
+async function createUserBin(username) {
+  const r = await fetch(BASE_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY, 'X-Bin-Name': 'Ledger-'+username, 'X-Bin-Private': 'true' },
+    body: JSON.stringify({ debts: [], purchases: [], stocks: [] })
+  });
+  if (!r.ok) throw new Error('Could not create your data store.');
+  return (await r.json()).metadata.id;
+}
+
+// ── App ───────────────────────────────────────────────────
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appContent').style.display  = 'block';
+  document.getElementById('userLabel').textContent     = currentUser.username;
+  const av = document.getElementById('userAvatar');
+  av.textContent = currentUser.username[0].toUpperCase();
+  av.className   = 'user-avatar' + (isEmployee() ? ' employee' : '');
+  document.getElementById('pageTitle').textContent    = currentUser.username + "'s Ledger";
+  document.getElementById('pageSubtitle').textContent = isEmployee()
+    ? 'Employee view — you can manage debts, purchases, and your portfolio.'
+    : 'Viewer access — you can view debts and manage your own purchases and portfolio.';
+  document.getElementById('roleBadge').style.display = isEmployee() ? 'inline-block' : 'none';
+  // Debt UI gating
+  document.getElementById('debtFormPanel').style.display      = isEmployee() ? 'block' : 'none';
+  document.getElementById('debtReadonlyNotice').style.display = isEmployee() ? 'none'  : 'flex';
+  document.getElementById('debtClearBtn').style.display       = isEmployee() ? 'inline-flex' : 'none';
+}
+
+function signOut() {
+  if (!confirm('Sign out?')) return;
+  localStorage.removeItem('ledger_session');
+  currentUser = null;
+  state = { debts: [], purchases: [], stocks: [] };
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appContent').style.display  = 'none';
+  document.getElementById('loginUser').value      = '';
+  document.getElementById('loginPin').value       = '';
+  document.getElementById('loginAccessKey').value = '';
+  setLoginMode('signin');
+}
+
+(function restoreSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('ledger_session') || 'null');
+    if (s && s.binId) {
+      currentUser = { username: s.username, binId: s.binId, isEmployee: !!s.isEmployee };
+      loadData().then(showApp);
+    }
+  } catch(e) {}
+})();
+
+// ── Sync ──────────────────────────────────────────────────
+function setSyncStatus(s) {
+  const dot = document.getElementById('syncDot'), lbl = document.getElementById('syncLabel');
+  dot.className   = 'sync-dot' + (s==='syncing' ? ' syncing' : s==='error' ? ' error' : '');
+  lbl.textContent = s==='syncing' ? 'Saving…' : s==='error' ? 'Error' : 'Synced';
+}
+async function loadData() {
+  setSyncStatus('syncing');
+  try {
+    const r = await fetch(`${BASE_URL}/${currentUser.binId}/latest`, { headers: { 'X-Master-Key': MASTER_KEY } });
+    if (!r.ok) throw new Error();
+    const d = (await r.json()).record;
+    state.debts     = d.debts     || [];
+    state.purchases = d.purchases || [];
+    state.stocks    = d.stocks    || [];
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); toast('Could not load data.'); }
+  render();
+}
+async function saveData() {
+  if (!currentUser) return;
+  setSyncStatus('syncing');
+  try {
+    const r = await fetch(`${BASE_URL}/${currentUser.binId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
+      body: JSON.stringify(state)
+    });
+    if (!r.ok) throw new Error();
+    setSyncStatus('ok');
+  } catch(e) { setSyncStatus('error'); toast('Could not save changes.'); }
+}
+function scheduleSave() { clearTimeout(saveTimer); saveTimer = setTimeout(saveData, 800); }
+
+// ── Render ────────────────────────────────────────────────
+function render() { renderDebts(); renderPurchases(); renderStocks(); renderSummary(); }
+
+function getFiltered(section) {
+  let items = [...state[section]];
+  if (section === 'debts') {
+    const q  = (document.getElementById('debtSearch')?.value||'').toLowerCase();
+    const sf = document.getElementById('debtStatusFilter')?.value||'';
+    if (q)  items = items.filter(d => (d.person+' '+d.desc).toLowerCase().includes(q));
+    if (sf) items = items.filter(d => d.status === sf);
+  }
+  if (section === 'purchases') {
+    const q  = (document.getElementById('purchaseSearch')?.value||'').toLowerCase();
+    const cf = document.getElementById('purchaseCatFilter')?.value||'';
+    if (q)  items = items.filter(p => (p.name+' '+(p.notes||'')).toLowerCase().includes(q));
+    if (cf) items = items.filter(p => p.category === cf);
+  }
+  if (section === 'stocks') {
+    const q = (document.getElementById('stockSearch')?.value||'').toLowerCase();
+    if (q) items = items.filter(s => (s.ticker+' '+s.name).toLowerCase().includes(q));
+  }
+  const { col, dir } = sortState[section];
+  items.sort((a,b) => {
+    let av = a[col], bv = b[col];
+    if (section==='stocks' && col==='value') { av=a.shares*a.currentPrice; bv=b.shares*b.currentPrice; }
+    if (section==='stocks' && col==='pl')    { av=a.shares*(a.currentPrice-a.buyPrice); bv=b.shares*(b.currentPrice-b.buyPrice); }
+    av = typeof av==='string' ? av.toLowerCase() : (av||0);
+    bv = typeof bv==='string' ? bv.toLowerCase() : (bv||0);
+    if (av<bv) return dir==='asc'?-1:1;
+    if (av>bv) return dir==='asc'?1:-1;
+    return 0;
+  });
+  return items;
+}
+function paginate(items, page) {
+  const total=items.length, totalPages=Math.max(1,Math.ceil(total/PAGE_SIZE));
+  const p=Math.min(Math.max(1,page),totalPages);
+  return { items:items.slice((p-1)*PAGE_SIZE,p*PAGE_SIZE), total, totalPages, page:p };
+}
+function renderPagBar(elId, section, total, totalPages, page) {
+  const el=document.getElementById(elId);
+  if (totalPages<=1) { el.innerHTML=`<span>${total} entr${total===1?'y':'ies'}</span><div></div>`; return; }
+  let btns='', s=Math.max(1,page-2), e=Math.min(totalPages,page+2);
+  if (s>1) btns+=`<button class="page-btn" onclick="goPage('${section}',1)">1</button>${s>2?'<span style="padding:0 4px;color:var(--ink-faint)">…</span>':''}`;
+  for (let i=s;i<=e;i++) btns+=`<button class="page-btn ${i===page?'active':''}" onclick="goPage('${section}',${i})">${i}</button>`;
+  if (e<totalPages) btns+=`${e<totalPages-1?'<span style="padding:0 4px;color:var(--ink-faint)">…</span>':''}<button class="page-btn" onclick="goPage('${section}',${totalPages})">${totalPages}</button>`;
+  el.innerHTML=`<span>${total} entr${total===1?'y':'ies'}</span><div class="pagination-controls">${btns}</div>`;
+}
+function goPage(section, p) {
+  pages[section]=p;
+  if (section==='debts') renderDebts();
+  else if (section==='purchases') renderPurchases();
+  else renderStocks();
+}
+function updateSortHeaders(section) {
+  const {col,dir}=sortState[section];
+  document.querySelectorAll(`[id^="th-${section}-"]`).forEach(th => {
+    const c=th.id.replace(`th-${section}-`,'');
+    th.className = c===col ? (dir==='asc'?'th-asc':'th-desc') : 'th-sort';
+  });
+}
+
+function renderDebts() {
+  updateSortHeaders('debts');
+  const filtered=getFiltered('debts');
+  const {items,total,totalPages,page}=paginate(filtered,pages.debts);
+  pages.debts=page;
+  const tbody=document.getElementById('debtTable');
+  const emp=isEmployee();
+  if (!total) {
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">No debts found<p>Add your first entry above</p></div></td></tr>';
+    document.getElementById('debtPagination').innerHTML='';
+    return;
+  }
+  tbody.innerHTML=items.map(d=>`
+    <tr id="row-${d.id}" ${editingDebtId===d.id?'class="editing-row"':''}>
+      <td><strong>${esc(d.person)}</strong></td>
+      <td style="color:var(--ink-soft)">${esc(d.desc||'')}</td>
+      <td class="td-amount negative">${fmt(d.amount)}</td>
+      <td>${d.due||'—'}</td>
+      <td><span class="badge badge-${d.status}">${d.status}</span></td>
+      <td>${emp?`<div class="actions-cell">
+        <button class="btn btn-sm btn-edit" onclick="startEditDebt('${d.id}')">✎ Edit</button>
+        <button class="btn btn-sm" onclick="toggleDebtPaid('${d.id}')" title="Toggle paid">✓</button>
+        <button class="btn btn-sm btn-danger" onclick="removeDebt('${d.id}')">✕</button>
+      </div>`:''}</td>
+    </tr>`).join('');
+  renderPagBar('debtPagination','debts',total,totalPages,page);
+}
+
+function renderPurchases() {
+  updateSortHeaders('purchases');
+  const filtered=getFiltered('purchases');
+  const {items,total,totalPages,page}=paginate(filtered,pages.purchases);
+  pages.purchases=page;
+  const tbody=document.getElementById('purchaseTable');
+  if (!total) {
+    tbody.innerHTML='<tr><td colspan="6"><div class="empty-state">No purchases found<p>Start tracking your spending above</p></div></td></tr>';
+    document.getElementById('purchasePagination').innerHTML='';
+    return;
+  }
+  tbody.innerHTML=items.map(p=>`<tr>
+    <td>${p.date||'—'}</td>
+    <td><strong>${esc(p.name)}</strong></td>
+    <td><span class="badge badge-purchase">${esc(p.category)}</span></td>
+    <td class="td-amount negative">${fmt(p.amount)}</td>
+    <td style="color:var(--ink-soft)">${esc(p.notes||'')}</td>
+    <td><button class="btn btn-sm btn-danger" onclick="removePurchase('${p.id}')">✕</button></td>
+  </tr>`).join('');
+  renderPagBar('purchasePagination','purchases',total,totalPages,page);
+}
+
+function renderStocks() {
+  updateSortHeaders('stocks');
+  const filtered=getFiltered('stocks');
+  const {items,total,totalPages,page}=paginate(filtered,pages.stocks);
+  pages.stocks=page;
+  const tbody=document.getElementById('stockTable');
+  if (!total) {
+    tbody.innerHTML='<tr><td colspan="8"><div class="empty-state">No holdings yet<p>Add stocks above or upload a CSV</p></div></td></tr>';
+    document.getElementById('stockPagination').innerHTML='';
+    return;
+  }
+  tbody.innerHTML=items.map(s=>{
+    const value=s.shares*s.currentPrice, cost=s.shares*s.buyPrice, pl=value-cost;
+    const plPct=cost?((pl/cost)*100).toFixed(2):'0.00';
+    const cls=pl>=0?'positive':'negative', sign=pl>=0?'+':'';
+    return `<tr>
+      <td><strong>${esc(s.ticker)}</strong></td><td>${esc(s.name)}</td>
+      <td>${parseFloat(s.shares).toLocaleString()}</td>
+      <td>${fmt(s.buyPrice)}</td><td>${fmt(s.currentPrice)}</td>
+      <td class="td-amount">${fmt(value)}</td>
+      <td class="td-amount ${cls}">${sign}${fmt(pl)} <span style="font-size:11px;opacity:0.7">(${sign}${plPct}%)</span></td>
+      <td><button class="btn btn-sm btn-danger" onclick="removeStock('${s.id}')">✕</button></td>
+    </tr>`;
+  }).join('');
+  renderPagBar('stockPagination','stocks',total,totalPages,page);
+}
+
+function renderSummary() {
+  const td=state.debts.filter(d=>d.status!=='paid').reduce((s,d)=>s+parseFloat(d.amount||0),0);
+  const tp=state.purchases.reduce((s,p)=>s+parseFloat(p.amount||0),0);
+  const ts=state.stocks.reduce((s,st)=>s+(st.shares*st.currentPrice),0);
+  const net=ts-td-tp;
+  document.getElementById('totalDebt').textContent    =fmt(td);
+  document.getElementById('debtCount').textContent    =state.debts.length+' entr'+(state.debts.length===1?'y':'ies');
+  document.getElementById('totalPurchases').textContent=fmt(tp);
+  document.getElementById('purchaseCount').textContent =state.purchases.length+' entr'+(state.purchases.length===1?'y':'ies');
+  document.getElementById('totalStocks').textContent  =fmt(ts);
+  document.getElementById('stockCount').textContent   =state.stocks.length+' holding'+(state.stocks.length===1?'':'s');
+  const el=document.getElementById('netBalance');
+  el.textContent=fmt(Math.abs(net));
+  el.className='stat-value '+(net>=0?'green':'red');
+  document.getElementById('netLabel').textContent=net>=0?'Surplus':'Deficit';
+}
+
+function sortTable(section,col) {
+  const cur=sortState[section];
+  if (cur.col===col) cur.dir=cur.dir==='asc'?'desc':'asc';
+  else { cur.col=col; cur.dir='asc'; }
+  pages[section]=1;
+  if (section==='debts') renderDebts();
+  else if (section==='purchases') renderPurchases();
+  else renderStocks();
+}
+
+// ── Debt CRUD (employee-gated) ────────────────────────────
+function guardEmployee() {
+  if (!isEmployee()) { toast('Only employees can modify debts.'); return false; }
+  return true;
+}
+function submitDebt() {
+  if (!guardEmployee()) return;
+  const person=document.getElementById('debtPerson').value.trim();
+  const desc  =document.getElementById('debtDesc').value.trim();
+  const amount=parseFloat(document.getElementById('debtAmount').value);
+  const due   =document.getElementById('debtDue').value;
+  const status=document.getElementById('debtStatus').value;
+  if (!person||!amount||isNaN(amount)) { toast('Please fill in person and amount.'); return; }
+  if (editingDebtId) {
+    const d=state.debts.find(d=>d.id===editingDebtId);
+    if (d) Object.assign(d,{person,desc,amount,due,status,updatedAt:today()});
+    cancelDebtEdit(); toast('Debt updated.');
+  } else {
+    state.debts.unshift({id:uid(),person,desc,amount,due,status,createdAt:today()});
+    clearDebtForm(); toast('Debt added.');
+  }
+  render(); scheduleSave();
+}
+function startEditDebt(id) {
+  if (!guardEmployee()) return;
+  const d=state.debts.find(d=>d.id===id); if (!d) return;
+  editingDebtId=id;
+  document.getElementById('debtPerson').value=d.person;
+  document.getElementById('debtDesc').value  =d.desc||'';
+  document.getElementById('debtAmount').value=d.amount;
+  document.getElementById('debtDue').value   =d.due||'';
+  document.getElementById('debtStatus').value=d.status;
+  document.getElementById('debtFormTitle').textContent      ='Edit Debt';
+  document.getElementById('debtEditIndicator').style.display='inline';
+  document.getElementById('debtSubmitBtn').textContent      ='✓ Save Changes';
+  document.getElementById('debtCancelBtn').style.display    ='inline-flex';
+  document.getElementById('debtFormPanel').classList.add('editing');
+  document.getElementById('debtFormPanel').scrollIntoView({behavior:'smooth',block:'start'});
+  renderDebts();
+}
+function cancelDebtEdit() {
+  editingDebtId=null; clearDebtForm();
+  document.getElementById('debtFormTitle').textContent      ='Add Debt';
+  document.getElementById('debtEditIndicator').style.display='none';
+  document.getElementById('debtSubmitBtn').textContent      ='+ Add Debt';
+  document.getElementById('debtCancelBtn').style.display    ='none';
+  document.getElementById('debtFormPanel').classList.remove('editing');
+  renderDebts();
+}
+function clearDebtForm() {
+  ['debtPerson','debtDesc','debtAmount'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('debtDue').value   =today();
+  document.getElementById('debtStatus').value='pending';
+}
+function removeDebt(id) {
+  if (!guardEmployee()) return;
+  if (editingDebtId===id) cancelDebtEdit();
+  state.debts=state.debts.filter(d=>d.id!==id);
+  render(); scheduleSave();
+}
+function toggleDebtPaid(id) {
+  if (!guardEmployee()) return;
+  const d=state.debts.find(d=>d.id===id);
+  if (d) d.status=d.status==='paid'?'pending':'paid';
+  render(); scheduleSave();
+}
+function clearDebts() {
+  if (!guardEmployee()) return;
+  if (!confirm('Clear all debts?')) return;
+  state.debts=[]; cancelDebtEdit(); render(); scheduleSave();
+}
+
+// ── Purchases ─────────────────────────────────────────────
+function addPurchase() {
+  const name    =document.getElementById('purchaseName').value.trim();
+  const category=document.getElementById('purchaseCategory').value;
+  const amount  =parseFloat(document.getElementById('purchaseAmount').value);
+  const date    =document.getElementById('purchaseDate').value;
+  const notes   =document.getElementById('purchaseNotes').value.trim();
+  if (!name||!amount||isNaN(amount)) { toast('Please fill in item and amount.'); return; }
+  state.purchases.unshift({id:uid(),name,category,amount,date,notes,createdAt:today()});
+  ['purchaseName','purchaseAmount','purchaseNotes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('purchaseDate').value=today();
+  render(); scheduleSave(); toast('Purchase logged.');
+}
+function removePurchase(id) { state.purchases=state.purchases.filter(p=>p.id!==id); render(); scheduleSave(); }
+function clearPurchases()   { if (!confirm('Clear all purchases?')) return; state.purchases=[]; render(); scheduleSave(); }
+
+// ── Stocks ────────────────────────────────────────────────
+function addStock() {
+  const ticker      =document.getElementById('stockTicker').value.trim().toUpperCase();
+  const name        =document.getElementById('stockName').value.trim();
+  const shares      =parseFloat(document.getElementById('stockShares').value);
+  const buyPrice    =parseFloat(document.getElementById('stockBuyPrice').value);
+  const currentPrice=parseFloat(document.getElementById('stockCurrentPrice').value);
+  const date        =document.getElementById('stockDate').value;
+  if (!ticker||isNaN(shares)||isNaN(buyPrice)||isNaN(currentPrice)) { toast('Please fill in ticker, shares, and both prices.'); return; }
+  state.stocks.unshift({id:uid(),ticker,name:name||ticker,shares,buyPrice,currentPrice,date,createdAt:today()});
+  ['stockTicker','stockName','stockShares','stockBuyPrice','stockCurrentPrice'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('stockDate').value=today();
+  render(); scheduleSave(); toast('Holding added.');
+}
+function removeStock(id) { state.stocks=state.stocks.filter(s=>s.id!==id); render(); scheduleSave(); }
+function clearStocks()   { if (!confirm('Clear all holdings?')) return; state.stocks=[]; render(); scheduleSave(); }
+
+function handleCsvUpload(event) {
+  const file=event.target.files[0]; if (!file) return;
+  const reader=new FileReader();
+  reader.onload=function(e) {
+    const lines=e.target.result.split('\n').map(l=>l.trim()).filter(Boolean);
+    let added=0;
+    const start=lines[0].toLowerCase().includes('ticker')?1:0;
+    for (let i=start;i<lines.length;i++) {
+      const cols=lines[i].split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+      if (cols.length<4) continue;
+      const [ticker,name,shares,buyPrice,currentPrice,date]=cols;
+      if (!ticker||isNaN(parseFloat(shares))||isNaN(parseFloat(buyPrice))) continue;
+      state.stocks.unshift({id:uid(),ticker:ticker.toUpperCase(),name:name||ticker,shares:parseFloat(shares),buyPrice:parseFloat(buyPrice),currentPrice:parseFloat(currentPrice||buyPrice),date:date||today(),createdAt:today()});
+      added++;
+    }
+    render(); scheduleSave();
+    toast(`Imported ${added} holding${added!==1?'s':''} from CSV.`);
+    event.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+const dz=document.getElementById('dropZone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{
+  e.preventDefault();dz.classList.remove('dragover');
+  const file=e.dataTransfer.files[0];
+  if (file&&file.name.endsWith('.csv')) handleCsvUpload({target:{files:[file],value:''}});
+  else toast('Please drop a CSV file.');
+});
+
+function switchTab(name,btn) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
+}
+
+let toastTimer;
+function toast(msg) {
+  const el=document.getElementById('toast');
+  el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),3000);
+}
+
+document.getElementById('purchaseDate').value=today();
+document.getElementById('debtDue').value     =today();
+document.getElementById('stockDate').value   =today();
+document.getElementById('loginPin').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+document.getElementById('loginUser').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPin').focus();});
+document.getElementById('loginAccessKey').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+</script>
+</body>
+</html>
